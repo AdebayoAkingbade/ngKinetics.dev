@@ -1,0 +1,15 @@
+{
+  "name": "@angular-motion/core",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "peerDependencies": {
+    "tslib": "^2.8.0"
+  }
+}

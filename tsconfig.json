@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/motion" },
+    { "path": "packages/presets" },
+    { "path": "apps/docs" },
+    { "path": "apps/playground" }
+  ]
+}
