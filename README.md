@@ -16,6 +16,7 @@ Angular Motion is an Angular-native library for building animations, gestures, s
 ## Status
 
 This project is under active development. APIs may change before the first stable release.
+Angular Motion is free and open-source under the MIT License.
 
 ## Goals
 
@@ -82,24 +83,24 @@ const variants = {
 
 ## Features
 
-Planned support includes:
+Current support includes:
 
-* enter and exit animations
-* keyframes
-* easing and transitions
-* hover, press and focus states
-* viewport animations
-* staggered animations
-* variants and presets
+* standalone `ngMotion` directive
+* `initial`, `animate`, `exit`, and `transition`
+* variants, presets, and custom variant data
+* hover, press, focus, and viewport states
+* keyframes with offsets and per-segment easing
+* staggered child animations
+* presence wrapper for exit animations
+* typed lifecycle events
+* imperative animation controls
 * motion values
-* spring physics
-* drag, pan and swipe gestures
-* scroll-linked animations
-* parallax
-* layout animations
-* shared element transitions
-* timelines
 * reduced-motion preferences
+* SSR-safe browser API access
+
+Planned later-phase support includes drag, pan, swipe, spring physics,
+scroll-linked animations, parallax, layout FLIP, shared-element transitions,
+timelines, CLI tooling, and devtools.
 
 ## Architecture
 
@@ -160,29 +161,37 @@ User motion preferences will be respected through `prefers-reduced-motion`.
 
 Animations must not interfere with keyboard navigation, focus management, or application functionality.
 
+## Security
+
+Angular Motion has no server runtime and does not load remote code, evaluate
+strings as JavaScript, or make network requests from animation primitives.
+Runtime style-property validation protects the DOM write boundary when
+TypeScript is bypassed. See [SECURITY.md](./SECURITY.md) and
+[docs/security.md](./docs/security.md).
+
 ## Roadmap
 
 ### Core
 
-* [ ] `ngMotion`
-* [ ] `initial`
-* [ ] `animate`
-* [ ] transitions
-* [ ] keyframes
-* [ ] `whileHover`
-* [ ] `whileTap`
-* [ ] `whileFocus`
-* [ ] `whileInView`
-* [ ] variants
-* [ ] reduced motion
-* [ ] SSR support
+* [x] `ngMotion`
+* [x] `initial`
+* [x] `animate`
+* [x] transitions
+* [x] keyframes
+* [x] `whileHover`
+* [x] `whileTap`
+* [x] `whileFocus`
+* [x] `whileInView`
+* [x] variants
+* [x] reduced motion
+* [x] SSR support
 
 ### Motion
 
-* [ ] motion values
+* [x] motion values
 * [ ] springs
-* [ ] interpolation
-* [ ] stagger
+* [x] interpolation
+* [x] stagger
 * [ ] timelines
 
 ### Interaction
@@ -197,7 +206,7 @@ Animations must not interfere with keyboard navigation, focus management, or app
 
 ### Tooling
 
-* [ ] documentation
+* [x] documentation
 * [ ] playground
 * [ ] presets
 * [ ] CLI
@@ -211,7 +220,7 @@ npm install
 ```
 
 ```bash
-npm run dev
+npm run typecheck
 ```
 
 ```bash
@@ -222,6 +231,10 @@ npm test
 npm run lint
 ```
 
+```bash
+npm run security:audit:prod
+```
+
 Development commands may change while the repository structure is being established.
 
 ## Contributing
@@ -230,4 +243,4 @@ The project is still in its early stages. Contribution guidelines will be added 
 
 ## License
 
-To be determined.
+MIT

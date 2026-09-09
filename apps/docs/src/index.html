@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src 'self'; style-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Documentation for Angular Motion, a free and open-source Angular animation library.">
+    <title>Angular Motion Documentation</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="site-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <strong>Angular Motion</strong>
+          <span>Free and open-source Angular animation primitives.</span>
+        </div>
+        <nav class="nav" aria-label="Documentation">
+          <a href="#install">Install</a>
+          <a href="#standalone">Standalone Angular</a>
+          <a href="#api">API Patterns</a>
+          <a href="#orchestration">Orchestration</a>
+          <a href="#security">Security</a>
+          <a href="#modern-angular">Modern Angular</a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <header class="intro">
+          <div>
+            <h1>Angular Motion Docs</h1>
+            <p>
+              Build enter, interaction, viewport, stagger, presence, keyframe,
+              and imperative animations with standalone Angular APIs.
+            </p>
+            <div class="quickstart" aria-label="Useful commands">
+              <code>npm run typecheck</code>
+              <code>npm test</code>
+              <code>npm run security:audit:prod</code>
+            </div>
+          </div>
+          <figure class="diagram">
+            <img
+              src="./assets/motion-system.svg"
+              alt="Angular Motion runtime flow from template inputs to state machine and renderer.">
+          </figure>
+        </header>
+
+        <section id="install">
+          <h2>Install Providers</h2>
+          <p>
+            Configure Angular Motion once at application bootstrap, then import
+            standalone directives into the components that need animation.
+          </p>
+          <pre><code>import { ApplicationConfig } from '@angular/core';
+import { provideAngularMotion } from '@angular-motion/motion';
+import { angularMotionPresets } from '@angular-motion/presets';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideAngularMotion({
+      presets: angularMotionPresets,
+      reducedMotion: 'user'
+    })
+  ]
+};</code></pre>
+        </section>
+
+        <section id="standalone">
+          <h2>Standalone Component Usage</h2>
+          <p>
+            Modern Angular components declare directive dependencies in their
+            own <code>imports</code> array. No feature NgModule is required.
+          </p>
+          <pre><code>import { Component } from '@angular/core';
+import { NgMotionDirective } from '@angular-motion/motion';
+
+@Component({
+  standalone: true,
+  imports: [NgMotionDirective],
+  selector: 'docs-example',
+  template: `
+    &lt;div
+      ngMotion
+      [initial]="{ opacity: 0, y: 32 }"
+      [animate]="{ opacity: 1, y: 0 }"
+      [transition]="{ duration: 0.35, ease: 'out' }"&gt;
+      Angular-native motion
+    &lt;/div&gt;
+  `
+})
+export class DocsExampleComponent {}</code></pre>
+        </section>
+
+        <section id="api">
+          <h2>API Patterns</h2>
+          <div class="grid">
+            <article class="card">
+              <h3>Interaction States</h3>
+              <pre><code>&lt;button
+  ngMotion
+  [animate]="{ scale: 1 }"
+  [whileHover]="{ scale: 1.04 }"
+  [whileTap]="{ scale: 0.96 }"
+  [whileFocus]="{ boxShadow: '0 0 0 4px #93c5fd' }"&gt;
+  Save
+&lt;/button&gt;</code></pre>
+              <div class="badge-row">
+                <span class="badge">hover</span>
+                <span class="badge">tap</span>
+                <span class="badge">focus</span>
+              </div>
+            </article>
+
+            <article class="card">
+              <h3>Variants</h3>
+              <pre><code>readonly variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    target: { opacity: 1, y: 0 },
+    transition: { duration: 0.32, ease: 'out' }
+  }
+};</code></pre>
+              <pre><code>&lt;article
+  ngMotion
+  initial="hidden"
+  animate="visible"
+  [variants]="variants"&gt;
+&lt;/article&gt;</code></pre>
+            </article>
+
+            <article class="card">
+              <h3>Keyframes</h3>
+              <pre><code>&lt;div
+  ngMotion
+  [animate]="{
+    scale: [1, 1.2, 0.95, 1],
+    opacity: [0, 1]
+  }"
+  [transition]="{
+    duration: 1,
+    ease: ['out', 'linear', 'in'],
+    times: [0, 0.4, 0.75, 1]
+  }"&gt;
+&lt;/div&gt;</code></pre>
+            </article>
+
+            <article class="card">
+              <h3>Lifecycle Events</h3>
+              <pre><code>&lt;div
+  ngMotion
+  [animate]="target"
+  (motionStart)="onStart($event)"
+  (motionComplete)="onComplete($event)"
+  (motionCancel)="onCancel($event)"&gt;
+&lt;/div&gt;</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section id="orchestration">
+          <h2>Orchestration</h2>
+          <h3>Stagger</h3>
+          <pre><code>&lt;div ngMotionGroup [stagger]="0.08"&gt;
+  @for (item of items(); track item) {
+    &lt;span
+      ngMotion
+      [initial]="{ opacity: 0, y: 12 }"
+      [animate]="{ opacity: 1, y: 0 }"&gt;
+      {{ item }}
+    &lt;/span&gt;
+  }
+&lt;/div&gt;</code></pre>
+
+          <h3>Presence</h3>
+          <pre><code>&lt;ng-motion-presence [present]="open()"&gt;
+  &lt;ng-template&gt;
+    &lt;section
+      ngMotion
+      [initial]="{ opacity: 0, scale: 0.95 }"
+      [animate]="{ opacity: 1, scale: 1 }"
+      [exit]="{ opacity: 0, scale: 0.95 }"&gt;
+      Panel
+    &lt;/section&gt;
+  &lt;/ng-template&gt;
+&lt;/ng-motion-presence&gt;</code></pre>
+
+          <h3>Imperative Controls</h3>
+          <pre><code>readonly controls = motionControls();
+
+run(): void {
+  this.controls.start({ opacity: 1, x: 80 }, { duration: 0.3 });
+}
+
+reset(): void {
+  this.controls.set({ opacity: 0.6, x: 0 });
+}</code></pre>
+        </section>
+
+        <section id="security">
+          <h2>Security</h2>
+          <p>
+            Angular Motion does not load remote code, evaluate strings as
+            JavaScript, require browser secrets, or make network requests from
+            animation primitives.
+          </p>
+          <p class="notice">
+            Treat motion targets as developer-owned configuration. Do not pass
+            raw user input into animation targets, variants, presets, or
+            imperative controls.
+          </p>
+          <pre><code>npm run security:audit:prod</code></pre>
+        </section>
+
+        <section id="modern-angular">
+          <h2>Modern Angular</h2>
+          <p>
+            This codebase uses standalone components/directives, functional
+            dependency injection with <code>inject()</code>, signals for local
+            reactive state in examples, and control-flow blocks such as
+            <code>@for</code>. These are current Angular patterns that reduce
+            NgModule ceremony and make dependencies visible next to the code
+            that uses them.
+          </p>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

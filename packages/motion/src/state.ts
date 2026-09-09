@@ -6,6 +6,8 @@ import type {
   MotionStyleValue,
   MotionTarget,
   MotionTransition,
+  MotionVariantObject,
+  MotionVariantResolver,
   MotionVariants
 } from '@angular-motion/core';
 
@@ -45,6 +47,29 @@ function isMotionStateDefinition(value: unknown): value is MotionStateDefinition
   return isRecord(value) && isRecord(value.target);
 }
 
+function isMotionTransition(value: unknown): value is MotionTransition {
+  return isRecord(value);
+}
+
+function isVariantResolver<TCustom>(
+  value: unknown
+): value is MotionVariantResolver<TCustom> {
+  return typeof value === 'function';
+}
+
+function variantObjectState(
+  value: MotionVariantObject,
+  context: string
+): ResolvedMotionState {
+  const { transition, ...target } = value;
+
+  if (transition !== undefined && !isMotionTransition(transition)) {
+    throw new Error(`Invalid transition supplied for "${context}".`);
+  }
+
+  return resolvedState(assertMotionTarget(target, context), transition);
+}
+
 function resolvedState(
   target: MotionTarget,
   transition: MotionTransition | undefined
@@ -55,7 +80,8 @@ function resolvedState(
 export function resolveMotionState(
   input: MotionStateInput,
   variants: MotionVariants,
-  context: string
+  context: string,
+  custom?: unknown
 ): ResolvedMotionState | undefined {
   if (input === undefined || input === null || input === false) {
     return undefined;
@@ -68,7 +94,16 @@ export function resolveMotionState(
       throw new Error(`Unknown motion variant "${input}" referenced by "${context}".`);
     }
 
-    return resolveMotionState(variant, variants, `variant:${input}`);
+    if (isVariantResolver(variant)) {
+      return resolveMotionState(
+        variant(custom),
+        variants,
+        `variant:${input}`,
+        custom
+      );
+    }
+
+    return resolveMotionState(variant, variants, `variant:${input}`, custom);
   }
 
   if (isMotionStateDefinition(input)) {
@@ -79,6 +114,10 @@ export function resolveMotionState(
   }
 
   if (isRecord(input)) {
+    if ('transition' in input) {
+      return variantObjectState(input as MotionVariantObject, context);
+    }
+
     return resolvedState(assertMotionTarget(input, context), undefined);
   }
 

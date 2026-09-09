@@ -7,3 +7,4 @@ export * from './motion-value/motion-value';
 export * from './reduced-motion';
 export * from './rendering/styles';
 export * from './rendering/transform';
+export * from './testing/animation-benchmark';

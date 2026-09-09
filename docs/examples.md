@@ -1,4 +1,4 @@
-# Phase 1 Examples
+# Examples
 
 ## Install Providers
 
@@ -92,3 +92,37 @@ x.set(80);
 `prefers-reduced-motion` in the browser and applies final styles immediately for
 users who request reduced motion. Gesture handlers never call `preventDefault`,
 so native keyboard and pointer behavior remain available.
+
+## Lifecycle Events
+
+```html
+<div
+  ngMotion
+  [animate]="target"
+  (motionStart)="onStart($event)"
+  (motionComplete)="onComplete($event)"
+  (motionCancel)="onCancel($event)">
+</div>
+```
+
+## Presence
+
+```html
+<ng-motion-presence [present]="open()">
+  <ng-template>
+    <section
+      ngMotion
+      [initial]="{ opacity: 0, scale: 0.95 }"
+      [animate]="{ opacity: 1, scale: 1 }"
+      [exit]="{ opacity: 0, scale: 0.95 }">
+      Panel
+    </section>
+  </ng-template>
+</ng-motion-presence>
+```
+
+## Security Notes
+
+Motion targets should be treated as developer-owned configuration. Do not pass
+raw user input into `animate`, `initial`, interaction states, variants, presets,
+or imperative controls.

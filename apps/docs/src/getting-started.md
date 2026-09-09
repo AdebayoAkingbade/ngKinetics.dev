@@ -23,3 +23,7 @@ import { NgMotionDirective } from '@angular-motion/motion';
 })
 export class DocsExampleComponent {}
 ```
+
+Angular Motion is free and open-source under the MIT License.
+
+For a browser-ready docs page, open `apps/docs/src/index.html`.

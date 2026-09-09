@@ -36,12 +36,14 @@ export type KnownMotionStyleProperty =
   | 'transformOrigin'
   | 'width';
 
-export type MotionStyleProperty = KnownMotionStyleProperty | (string & {});
+export type MotionStyleProperty = KnownMotionStyleProperty | `--${string}`;
 export type MotionStyleValue = number | string;
 export type MotionKeyframeValue =
   | MotionStyleValue
   | readonly MotionStyleValue[];
-export type MotionTarget = Partial<Record<MotionStyleProperty, MotionKeyframeValue>>;
+export type MotionTarget = {
+  [Property in MotionStyleProperty]?: MotionKeyframeValue;
+};
 export type MotionResolvedTarget = Partial<
   Record<MotionStyleProperty, MotionStyleValue>
 >;
@@ -65,16 +67,18 @@ export type MotionCubicBezier = readonly [
 export type MotionEasing =
   | MotionEasingName
   | MotionCubicBezier
-  | CSSNumberish
   | (string & {});
+
+export type MotionEasingInput = MotionEasing | readonly MotionEasing[];
 
 export interface MotionTransition {
   duration?: number;
   delay?: number;
-  ease?: MotionEasing;
+  ease?: MotionEasingInput;
   fill?: FillMode;
   direction?: PlaybackDirection;
   iterations?: number;
+  times?: readonly number[];
 }
 
 export interface ResolvedMotionTransition {
@@ -91,6 +95,14 @@ export interface MotionStateDefinition {
   transition?: MotionTransition;
 }
 
+export type MotionVariantResolver<TCustom = unknown> = (
+  custom: TCustom
+) => MotionStateDefinition | MotionVariantObject;
+
+export type MotionVariantObject = MotionTarget & {
+  transition?: MotionTransition;
+};
+
 export type MotionVariantLabel = string;
 export type MotionStateInput =
   | MotionTarget
@@ -100,7 +112,10 @@ export type MotionStateInput =
   | null
   | undefined;
 
-export type MotionVariants = Record<MotionVariantLabel, MotionStateDefinition | MotionTarget>;
+export type MotionVariants<TCustom = unknown> = Record<
+  MotionVariantLabel,
+  MotionStateDefinition | MotionVariantObject | MotionVariantResolver<TCustom>
+>;
 
 export interface MotionPresetDefinition {
   initial?: MotionStateInput;
@@ -109,6 +124,7 @@ export interface MotionPresetDefinition {
   whileTap?: MotionStateInput;
   whileFocus?: MotionStateInput;
   whileInView?: MotionStateInput;
+  exit?: MotionStateInput;
   transition?: MotionTransition;
   variants?: MotionVariants;
 }

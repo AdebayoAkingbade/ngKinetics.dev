@@ -24,8 +24,16 @@ export class MotionAnimator {
 
     return this.driver.animate(
       element,
-      createDomKeyframes(from, to),
+      createDomKeyframes(from, to, transition),
       resolveTransition(transition)
     );
+  }
+
+  createKeyframes(
+    from: MotionTarget | undefined,
+    to: MotionTarget,
+    transition: MotionTransition | undefined
+  ): Keyframe[] {
+    return createDomKeyframes(from, to, transition);
   }
 }

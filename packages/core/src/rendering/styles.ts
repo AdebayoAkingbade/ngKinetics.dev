@@ -1,22 +1,92 @@
 import type {
+  MotionEasingInput,
   MotionKeyframeValue,
   MotionResolvedTarget,
   MotionStyleProperty,
   MotionStyleValue,
-  MotionTarget
+  MotionTarget,
+  MotionTransition
 } from '../animation/types';
+import { resolveEasingList } from '../animation/easing';
 import { buildTransform, isTransformProperty } from './transform';
 
 type TargetEntry = [MotionStyleProperty, MotionKeyframeValue];
 
+const knownMotionStyleProperties = new Set<string>([
+  'x',
+  'y',
+  'z',
+  'translateX',
+  'translateY',
+  'translateZ',
+  'scale',
+  'scaleX',
+  'scaleY',
+  'scaleZ',
+  'rotate',
+  'rotateX',
+  'rotateY',
+  'rotateZ',
+  'skewX',
+  'skewY',
+  'perspective',
+  'opacity',
+  'backgroundColor',
+  'borderColor',
+  'borderRadius',
+  'boxShadow',
+  'clipPath',
+  'color',
+  'filter',
+  'height',
+  'left',
+  'right',
+  'top',
+  'bottom',
+  'transform',
+  'transformOrigin',
+  'width'
+]);
+
 function targetEntries(target: MotionTarget): TargetEntry[] {
   return Object.entries(target) as TargetEntry[];
+}
+
+function isCustomProperty(property: string): boolean {
+  return /^--[A-Za-z_][A-Za-z0-9_-]*$/.test(property);
 }
 
 function isKeyframeList(
   value: MotionKeyframeValue | undefined
 ): value is readonly MotionStyleValue[] {
   return Array.isArray(value);
+}
+
+function validateMotionStyleProperty(
+  property: MotionStyleProperty,
+  context: string
+): void {
+  if (knownMotionStyleProperties.has(property) || isCustomProperty(property)) {
+    return;
+  }
+
+  throw new Error(
+    `Motion ${context} property "${property}" is not supported. Use a typed motion property or a CSS custom property such as "--motion-value".`
+  );
+}
+
+function validateMotionStyleValue(
+  value: MotionStyleValue,
+  property: MotionStyleProperty,
+  context: string
+): void {
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    throw new Error(`Motion ${context} property "${property}" must be a finite number.`);
+  }
+
+  if (typeof value === 'string' && value.length === 0) {
+    throw new Error(`Motion ${context} property "${property}" cannot be an empty string.`);
+  }
 }
 
 function keyframeAt(
@@ -30,6 +100,20 @@ function keyframeAt(
   }
 
   return value;
+}
+
+function validateKeyframeList(
+  property: MotionStyleProperty,
+  values: readonly MotionStyleValue[],
+  context: string
+): void {
+  if (values.length === 0) {
+    throw new Error(`Motion ${context} keyframes for "${property}" must contain at least one value.`);
+  }
+
+  for (const value of values) {
+    validateMotionStyleValue(value, property, context);
+  }
 }
 
 function finalValue(value: MotionKeyframeValue): MotionStyleValue {
@@ -64,7 +148,65 @@ function collectProperties(
   );
 }
 
+function validateTarget(target: MotionTarget, context: string): void {
+  for (const [property, value] of targetEntries(target)) {
+    validateMotionStyleProperty(property, context);
+
+    if (isKeyframeList(value)) {
+      validateKeyframeList(property, value, context);
+    } else {
+      validateMotionStyleValue(value, property, context);
+    }
+  }
+}
+
+function validateTimes(
+  times: readonly number[] | undefined,
+  frameCount: number
+): void {
+  if (times === undefined) {
+    return;
+  }
+
+  if (times.length !== frameCount) {
+    throw new Error(
+      `Motion transition times must contain ${frameCount} entries for this keyframe animation.`
+    );
+  }
+
+  let previous = -Infinity;
+
+  for (const time of times) {
+    if (!Number.isFinite(time) || time < 0 || time > 1) {
+      throw new Error('Motion transition times must be finite numbers between 0 and 1.');
+    }
+
+    if (time < previous) {
+      throw new Error('Motion transition times must be sorted in ascending order.');
+    }
+
+    previous = time;
+  }
+}
+
+function validateEasingList(
+  easing: MotionEasingInput | undefined,
+  frameCount: number
+): string[] | undefined {
+  const easingList = resolveEasingList(easing);
+
+  if (easingList !== undefined && easingList.length > frameCount - 1) {
+    throw new Error(
+      `Motion transition ease arrays can contain at most ${frameCount - 1} entries for this keyframe animation.`
+    );
+  }
+
+  return easingList;
+}
+
 export function resolveFinalTarget(target: MotionTarget): MotionResolvedTarget {
+  validateTarget(target, 'target');
+
   const resolved: MotionResolvedTarget = {};
 
   for (const [property, value] of targetEntries(target)) {
@@ -75,6 +217,8 @@ export function resolveFinalTarget(target: MotionTarget): MotionResolvedTarget {
 }
 
 export function buildStyleMap(target: MotionResolvedTarget): Record<string, string> {
+  validateTarget(target, 'resolved target');
+
   const styles: Record<string, string> = {};
   const transform = buildTransform(target);
 
@@ -113,8 +257,15 @@ export function applyTargetStyles(
 
 export function createDomKeyframes(
   from: MotionTarget | undefined,
-  to: MotionTarget
+  to: MotionTarget,
+  transition: MotionTransition | undefined = undefined
 ): Keyframe[] {
+  if (from !== undefined) {
+    validateTarget(from, 'from');
+  }
+
+  validateTarget(to, 'to');
+
   const properties = collectProperties(from, to);
   const frameCount = Math.max(
     2,
@@ -122,6 +273,10 @@ export function createDomKeyframes(
       isKeyframeList(value) ? value.length : 1
     )
   );
+  const times = transition?.times;
+  const easingList = validateEasingList(transition?.ease, frameCount);
+
+  validateTimes(times, frameCount);
 
   return Array.from({ length: frameCount }, (_, index) => {
     const frame: MotionResolvedTarget = {};
@@ -141,6 +296,18 @@ export function createDomKeyframes(
       }
     }
 
-    return buildStyleMap(frame);
+    const styleMap = buildStyleMap(frame) as Keyframe;
+    const offset = times?.[index];
+    const easing = easingList?.[index];
+
+    if (offset !== undefined) {
+      styleMap.offset = offset;
+    }
+
+    if (easing !== undefined) {
+      styleMap.easing = easing;
+    }
+
+    return styleMap;
   });
 }
