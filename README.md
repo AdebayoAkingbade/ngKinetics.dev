@@ -1,246 +1,90 @@
-# Angular Motion
+# ngKinetics
 
-Angular Motion is an Angular-native library for building animations, gestures, scroll effects, and layout transitions using a declarative API.
+Angular-native motion primitives for animations, interactions, viewport effects, and layout transitions.
 
 ```html
 <div
-  ngMotion
+  ngKinetics
   [initial]="{ opacity: 0, y: 40 }"
   [animate]="{ opacity: 1, y: 0 }"
   [transition]="{ duration: 0.4, ease: 'out' }"
 >
   Hello Angular
 </div>
-```
 
-## Status
+Installation:
+npm install @ngkinetics/core
 
-This project is under active development. APIs may change before the first stable release.
-Angular Motion is free and open-source under the MIT License.
+Usage
+import { Component } from '@angular/core';
+import { NgKineticsDirective } from '@ngkinetics/core';
 
-## Goals
+@Component({
+  selector: 'app-example',
+  standalone: true,
+  imports: [NgKineticsDirective],
+  template: `
+    <div
+      ngKinetics
+      [initial]="{ opacity: 0, y: 24 }"
+      [animate]="{ opacity: 1, y: 0 }"
+    >
+      Content
+    </div>
+  `
+})
+export class ExampleComponent {}
 
-Angular Motion is designed to work naturally with modern Angular applications.
-
-The library aims to be:
-
-* Angular and TypeScript native
-* Signals-friendly
-* standalone-first
-* tree-shakeable
-* SSR and hydration safe
-* zoneless compatible
-* accessible
-* lightweight
-
-The core package will not require GSAP or Angular's deprecated animation APIs.
-
-## Planned API
-
-### Hover and press
-
-```html
+nteractions
 <button
-  ngMotion
+  ngKinetics
   [whileHover]="{ scale: 1.05 }"
   [whileTap]="{ scale: 0.96 }"
 >
   Continue
 </button>
-```
-
-### Scroll reveal
-
-```html
+Viewport animations
 <section
-  ngMotion
+  ngKinetics
   [initial]="{ opacity: 0, y: 40 }"
   [whileInView]="{ opacity: 1, y: 0 }"
 >
   Content
 </section>
-```
+Features
 
-### Variants
+Current and planned capabilities include:
 
-```ts
-const variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 }
-};
-```
+initial and animate
+transitions and easing
+keyframes
+variants
+presets
+whileHover
+whileTap
+whileFocus
+whileInView
+reduced-motion support
+motion values
+stagger
+presence and exit animations
+spring physics
+gestures
+scroll-linked animation
+layout transitions
+Packages
+@ngkinetics/core
+@ngkinetics/presets
 
-```html
-<div
-  ngMotion
-  [variants]="variants"
-  initial="hidden"
-  animate="visible"
->
-  Content
-</div>
-```
+Planned packages:
 
-## Features
-
-Current support includes:
-
-* standalone `ngMotion` directive
-* `initial`, `animate`, `exit`, and `transition`
-* variants, presets, and custom variant data
-* hover, press, focus, and viewport states
-* keyframes with offsets and per-segment easing
-* staggered child animations
-* presence wrapper for exit animations
-* typed lifecycle events
-* imperative animation controls
-* motion values
-* reduced-motion preferences
-* SSR-safe browser API access
-
-Planned later-phase support includes drag, pan, swipe, spring physics,
-scroll-linked animations, parallax, layout FLIP, shared-element transitions,
-timelines, CLI tooling, and devtools.
-
-## Architecture
-
-The public API is independent of the underlying animation implementation.
-
-```text
-Angular Template
-       |
-       v
-   ngMotion
-       |
-       v
- Motion Runtime
-       |
-       +-- CSS
-       +-- Web Animations API
-       +-- requestAnimationFrame
-       +-- Optional adapters
-```
-
-Simple animations should use the lightest suitable browser mechanism.
-
-More advanced animation engines can be provided through optional adapters without becoming dependencies of the core package.
-
-## Packages
-
-The project is expected to be split into focused packages as it grows.
-
-```text
-packages/
-  core
-  gestures
-  scroll
-  layout
-  physics
-  presets
-
-apps/
-  docs
-  playground
-```
-
-## Performance
-
-Angular Motion should avoid unnecessary Angular change detection and DOM work.
-
-The implementation should:
-
-* prefer `transform` and `opacity`
-* batch animation-frame work
-* avoid layout thrashing
-* clean up observers and event listeners
-* keep high-frequency animation state outside normal application rendering where appropriate
-
-## Accessibility
-
-User motion preferences will be respected through `prefers-reduced-motion`.
-
-Animations must not interfere with keyboard navigation, focus management, or application functionality.
-
-## Security
-
-Angular Motion has no server runtime and does not load remote code, evaluate
-strings as JavaScript, or make network requests from animation primitives.
-Runtime style-property validation protects the DOM write boundary when
-TypeScript is bypassed. See [SECURITY.md](./SECURITY.md) and
-[docs/security.md](./docs/security.md).
-
-## Roadmap
-
-### Core
-
-* [x] `ngMotion`
-* [x] `initial`
-* [x] `animate`
-* [x] transitions
-* [x] keyframes
-* [x] `whileHover`
-* [x] `whileTap`
-* [x] `whileFocus`
-* [x] `whileInView`
-* [x] variants
-* [x] reduced motion
-* [x] SSR support
-
-### Motion
-
-* [x] motion values
-* [ ] springs
-* [x] interpolation
-* [x] stagger
-* [ ] timelines
-
-### Interaction
-
-* [ ] drag
-* [ ] pan
-* [ ] swipe
-* [ ] scroll progress
-* [ ] parallax
-* [ ] layout animations
-* [ ] shared element transitions
-
-### Tooling
-
-* [x] documentation
-* [ ] playground
-* [ ] presets
-* [ ] CLI
-* [ ] component registry
-* [ ] devtools
-
-## Development
-
-```bash
+@ngkinetics/gestures
+@ngkinetics/scroll
+@ngkinetics/layout
+@ngkinetics/physics
+Development
 npm install
-```
-
-```bash
 npm run typecheck
-```
-
-```bash
 npm test
-```
-
-```bash
 npm run lint
-```
-
-```bash
-npm run security:audit:prod
-```
-
-Development commands may change while the repository structure is being established.
-
-## Contributing
-
-The project is still in its early stages. Contribution guidelines will be added once the core API and package boundaries are stable.
-
-## License
-
-MIT
+npm run build
